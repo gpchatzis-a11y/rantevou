@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f4e78">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ραντεβού">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Ραντεβού Ψυκτικού</title>
+<style>
+:root{
+  --bg:#f3f5f8;--card:#fff;--ink:#1c2430;--muted:#6b7480;--line:#e3e7ec;
+  --pri:#1f4e78;--pri2:#2f6ea8;--ok:#1e8e4e;--warn:#c98a00;--bad:#c0392b;
+  --r:14px;--safe-b:env(safe-area-inset-bottom,0px);--safe-t:env(safe-area-inset-top,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+header{position:sticky;top:0;z-index:5;background:var(--pri);color:#fff;padding:calc(10px + var(--safe-t)) 16px 10px;display:flex;align-items:center;gap:10px}
+header h1{font-size:18px;margin:0;flex:1;font-weight:600}
+header button{background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:10px;padding:7px 11px;font-size:14px}
+main{padding:12px 12px calc(84px + var(--safe-b));max-width:760px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;background:#fff;border-top:1px solid var(--line);display:flex;padding-bottom:var(--safe-b)}
+nav button{flex:1;border:0;background:none;padding:8px 0 9px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav button .ic{font-size:21px;line-height:1}
+nav button.on{color:var(--pri);font-weight:600}
+nav button.add .ic{background:var(--pri);color:#fff;border-radius:50%;width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-size:26px;margin-top:-14px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.card{background:var(--card);border-radius:var(--r);padding:12px 14px;margin:0 0 10px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.dayhead{display:flex;align-items:center;gap:8px;margin:16px 4px 8px;flex-wrap:wrap}
+.dayhead h2{font-size:15px;margin:0;flex:1;min-width:140px}
+.dayhead.today h2{color:var(--pri)}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.job{border-left:5px solid #bbb;position:relative}
+.job .t{font-weight:700;font-size:15px;margin-right:6px}
+.job .nm{font-weight:600}
+.job.done{opacity:.62}
+.job.cancel{opacity:.45;text-decoration:line-through}
+.zone{display:inline-block;color:#fff;border-radius:20px;padding:1px 9px;font-size:12px;font-weight:600;white-space:nowrap}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:10px;padding:8px 12px;font-size:14px;text-decoration:none;display:inline-flex;align-items:center;gap:5px;cursor:pointer}
+.btn.pri{background:var(--pri);border-color:var(--pri);color:#fff}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.bad{color:var(--bad);border-color:#efc6c1}
+.btn.big{width:100%;justify-content:center;padding:13px;font-size:16px;font-weight:600}
+.btn:disabled{opacity:.5}
+label{display:block;font-size:13px;color:var(--muted);margin:10px 0 3px}
+input,select,textarea{width:100%;font:inherit;font-size:16px;padding:10px 11px;border:1px solid #cfd6de;border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pri2);border-color:transparent}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.g3{display:grid;grid-template-columns:2fr 1fr;gap:0 10px}
+.sec{font-weight:700;font-size:14px;color:var(--pri);margin:4px 0 2px;text-transform:uppercase;letter-spacing:.3px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.chip{border:1px solid #cfd6de;background:#fff;border-radius:20px;padding:6px 11px;font-size:14px;cursor:pointer}
+.chip.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+.days{display:flex;gap:6px;overflow-x:auto;padding:4px 0 6px;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.dchip{flex:0 0 auto;min-width:64px;text-align:center;border-radius:12px;padding:6px 6px;border:2px solid transparent;cursor:pointer;font-size:12px;background:#eef1f4}
+.dchip b{display:block;font-size:15px}
+.dchip.best{background:#d7f0dd}.dchip.good{background:#eaf6ec}.dchip.free{background:#e4eef9}
+.dchip.other{background:#fbe3df}.dchip.full,.dchip.sun{background:#e5e5e5;color:#888}
+.dchip.sel{border-color:var(--pri)}
+.sugg{border:1px solid var(--line);border-radius:10px;margin-top:4px;overflow:hidden}
+.sugg div{padding:9px 11px;border-bottom:1px solid var(--line);cursor:pointer;background:#fff}
+.sugg div:last-child{border-bottom:0}
+.sugg div:active{background:#eef4fb}
+.linked{background:#e9f6ee;border:1px solid #b9e2c6;border-radius:10px;padding:9px 11px;margin-top:8px;font-size:14px}
+.warnbox{background:#fff6dd;border:1px solid #f0d58a;border-radius:10px;padding:10px 12px;margin:0 0 10px;font-size:14px}
+.search{position:sticky;top:calc(52px + var(--safe-t));z-index:4;background:var(--bg);padding:2px 0 8px}
+.custrow{display:flex;justify-content:space-between;gap:10px;align-items:center;cursor:pointer}
+.empty{text-align:center;color:var(--muted);padding:40px 10px}
+.modal{position:fixed;inset:0;background:rgba(10,20,30,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.modal .box{background:#fff;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + var(--safe-b));width:100%;max-width:560px;max-height:88vh;overflow:auto}
+.modal h3{margin:0 0 8px}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-b));transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:12px;z-index:30;font-size:14px;max-width:90%;text-align:center}
+.hist{border-top:1px solid var(--line);padding:8px 0}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:15px}
+.kv div:nth-child(odd){color:var(--muted);font-size:13px;padding-top:2px}
+.seg{display:flex;background:#e6eaef;border-radius:10px;padding:3px;gap:3px;margin-bottom:6px}
+.seg button{flex:1;border:0;background:none;padding:7px;border-radius:8px;font-size:14px}
+.seg button.on{background:#fff;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+a.tel{color:var(--pri);text-decoration:none;font-weight:600}
+</style>
+</head>
+<body>
+<header><h1 id="title">Πρόγραμμα</h1><span id="hdrx"></span></header>
+<main id="main"></main>
+<nav id="nav">
+  <button data-v="agenda" class="on"><span class="ic">📅</span>Πρόγραμμα</button>
+  <button data-v="new" class="add"><span class="ic">＋</span>Νέο</button>
+  <button data-v="customers"><span class="ic">👥</span>Πελάτες</button>
+  <button data-v="more"><span class="ic">⚙️</span>Αρχείο</button>
+</nav>
+<div id="modalRoot"></div>
+<script>
+"use strict";
+/* =================== ΣΤΑΘΕΡΑ: ΖΩΝΕΣ / ΠΕΡΙΟΧΕΣ =================== */
+const ZONES = {
+  "Κέντρο":{c:"#475569",n:["Νότια","Ανατολικά","Βόρεια","Δυτικά"]},
+  "Νότια":{c:"#0284c7",n:["Κέντρο","Νοτιοανατολικά","Πειραιάς"]},
+  "Νοτιοανατολικά":{c:"#7c3aed",n:["Νότια","Παραλιακά","Ανατολικά"]},
+  "Παραλιακά":{c:"#0d9488",n:["Νοτιοανατολικά","Νότια","Μεσόγεια"]},
+  "Ανατολικά":{c:"#d97706",n:["Κέντρο","Νοτιοανατολικά","Βόρεια","Μεσόγεια"]},
+  "Βόρεια":{c:"#16a34a",n:["Κέντρο","Ανατολικά","Δυτικά"]},
+  "Δυτικά":{c:"#dc2626",n:["Κέντρο","Βόρεια","Πειραιάς"]},
+  "Πειραιάς":{c:"#1d4ed8",n:["Νότια","Δυτικά"]},
+  "Μεσόγεια":{c:"#a16207",n:["Ανατολικά","Παραλιακά"]}
+};
+// Περιοχή: [ΤΚ από, ΤΚ έως, ζώνη] — κατά προσέγγιση, να ελεγχθεί με ΕΛΤΑ
+const AREAS = {
+ "Αθήνα (κέντρο)":[10431,10683,"Κέντρο"],"Πατήσια":[11141,11257,"Κέντρο"],"Γαλάτσι":[11146,11147,"Κέντρο"],
+ "Κυψέλη":[11252,11364,"Κέντρο"],"Γκύζη":[11475,11475,"Κέντρο"],"Αμπελόκηποι":[11521,11528,"Κέντρο"],
+ "Παγκράτι":[11633,11636,"Κέντρο"],"Κουκάκι":[11741,11743,"Κέντρο"],"Πετράλωνα":[11851,11855,"Κέντρο"],
+ "Καλλιθέα":[17671,17676,"Νότια"],"Νέα Σμύρνη":[17121,17124,"Νότια"],"Παλαιό Φάληρο":[17561,17564,"Νότια"],
+ "Μοσχάτο":[18344,18345,"Νότια"],"Ταύρος":[17778,17778,"Νότια"],
+ "Ηλιούπολη":[16341,16346,"Νοτιοανατολικά"],"Αργυρούπολη":[16451,16452,"Νοτιοανατολικά"],
+ "Άγιος Δημήτριος":[17341,17343,"Νοτιοανατολικά"],"Δάφνη":[17234,17235,"Νοτιοανατολικά"],"Υμηττός":[17236,17237,"Νοτιοανατολικά"],
+ "Άλιμος":[17455,17456,"Παραλιακά"],"Ελληνικό":[16777,16777,"Παραλιακά"],"Γλυφάδα":[16561,16675,"Παραλιακά"],
+ "Βούλα":[16673,16673,"Παραλιακά"],"Βάρη":[16672,16672,"Παραλιακά"],"Βουλιαγμένη":[16671,16671,"Παραλιακά"],
+ "Βύρωνας":[16231,16233,"Ανατολικά"],"Καισαριανή":[16121,16122,"Ανατολικά"],"Ζωγράφου":[15771,15773,"Ανατολικά"],
+ "Παπάγου":[15669,15669,"Ανατολικά"],"Χολαργός":[15561,15562,"Ανατολικά"],"Αγία Παρασκευή":[15341,15343,"Ανατολικά"],
+ "Γέρακας":[15344,15344,"Ανατολικά"],"Παλλήνη":[15351,15351,"Ανατολικά"],
+ "Χαλάνδρι":[15231,15234,"Βόρεια"],"Βριλήσσια":[15235,15235,"Βόρεια"],"Φιλοθέη":[15237,15237,"Βόρεια"],
+ "Ψυχικό":[15451,15452,"Βόρεια"],"Μαρούσι":[15122,15125,"Βόρεια"],"Πεύκη":[15121,15121,"Βόρεια"],
+ "Μελίσσια":[15127,15127,"Βόρεια"],"Κηφισιά":[14561,14564,"Βόρεια"],"Νέα Ερυθραία":[14671,14671,"Βόρεια"],
+ "Λυκόβρυση":[14123,14123,"Βόρεια"],"Ηράκλειο":[14121,14122,"Βόρεια"],"Νέα Ιωνία":[14231,14235,"Βόρεια"],
+ "Νέα Φιλαδέλφεια":[14341,14342,"Βόρεια"],"Μεταμόρφωση":[14451,14452,"Βόρεια"],
+ "Περιστέρι":[12131,12137,"Δυτικά"],"Αιγάλεω":[12241,12244,"Δυτικά"],"Αγία Βαρβάρα":[12351,12351,"Δυτικά"],
+ "Χαϊδάρι":[12461,12462,"Δυτικά"],"Πετρούπολη":[13231,13231,"Δυτικά"],"Ίλιον":[13121,13123,"Δυτικά"],
+ "Άγιοι Ανάργυροι":[13561,13562,"Δυτικά"],"Καματερό":[13451,13451,"Δυτικά"],"Αχαρνές":[13671,13679,"Δυτικά"],
+ "Πειραιάς":[18531,18548,"Πειραιάς"],"Κερατσίνι":[18755,18757,"Πειραιάς"],"Δραπετσώνα":[18648,18648,"Πειραιάς"],
+ "Νίκαια":[18450,18454,"Πειραιάς"],"Κορυδαλλός":[18120,18122,"Πειραιάς"],"Άγιος Ιωάννης Ρέντης":[18233,18233,"Πειραιάς"],
+ "Πέραμα":[18863,18863,"Πειραιάς"],
+ "Γλυκά Νερά":[15354,15354,"Μεσόγεια"],"Παιανία":[19002,19002,"Μεσόγεια"],"Μαρκόπουλο":[19003,19003,"Μεσόγεια"],
+ "Σπάτα":[19004,19004,"Μεσόγεια"],"Ραφήνα":[19009,19009,"Μεσόγεια"],"Κορωπί":[19400,19400,"Μεσόγεια"]
+};
+function prefixZone(p){
+  if(p>=100&&p<=119)return"Κέντρο"; if(p>=120&&p<=139)return"Δυτικά";
+  if((p>=140&&p<=152)||p===154)return"Βόρεια"; if([153,155,156,157,161,162].includes(p))return"Ανατολικά";
+  if([163,164,172,173].includes(p))return"Νοτιοανατολικά"; if([165,166,167,174].includes(p))return"Παραλιακά";
+  if([171,175,176,177].includes(p))return"Νότια"; if(p>=180&&p<=189)return"Πειραιάς";
+  if(p>=190&&p<=195)return"Μεσόγεια"; return "";
+}
+const CATS=["Εγκατάσταση A/C","Συντήρηση A/C","Επισκευή/Βλάβη A/C","Απεγκατάσταση","Απορροφητήρας","Κουζίνα/Εστίες","Άλλο"];
+const BTU=["9.000","12.000","18.000","24.000"];
+const DAYN=["Κυριακή","Δευτέρα","Τρίτη","Τετάρτη","Πέμπτη","Παρασκευή","Σάββατο"];
+const MON=["Ιαν","Φεβ","Μαρ","Απρ","Μαΐ","Ιουν","Ιουλ","Αυγ","Σεπ","Οκτ","Νοε","Δεκ"];
+
+/* =================== ΒΟΗΘΗΤΙΚΑ =================== */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm=s=>String(s??"").normalize("NFD").replace(/[̀-ͯ]/g,"").toUpperCase().replace(/\s+/g," ").trim();
+const nphone=s=>{let d=String(s??"").replace(/\D/g,""); if(d.startsWith("0030"))d=d.slice(4); else if(d.length===12&&d.startsWith("30"))d=d.slice(2); return d;};
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parseISO=s=>{const[a,b,c]=s.split("-").map(Number);return new Date(a,b-1,c);};
+const todayISO=()=>iso(new Date());
+const addDays=(s,n)=>{const d=parseISO(s);d.setDate(d.getDate()+n);return iso(d);};
+const fmtD=s=>{if(!s)return"";const d=parseISO(s);return pad(d.getDate())+"/"+pad(d.getMonth()+1)+"/"+d.getFullYear();};
+const fmtDay=s=>{const d=parseISO(s);return DAYN[d.getDay()]+" "+d.getDate()+" "+MON[d.getMonth()];};
+const eur=v=>(v===""||v==null||isNaN(v))?"":Number(v).toLocaleString("el-GR",{minimumFractionDigits:0,maximumFractionDigits:2})+" €";
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+function areaKey(a){const k=norm(a);return Object.keys(AREAS).find(x=>norm(x)===k)||"";}
+function zoneOf(area,tk){
+  const a=areaKey(area); if(a)return AREAS[a][2];
+  const t=String(tk||"").replace(/\D/g,""); if(t.length>=3){const z=prefixZone(+t.slice(0,3)); if(z)return z;}
+  return "";
+}
+const zoneBadge=z=>z?`<span class="zone" style="background:${ZONES[z].c}">${esc(z)}</span>`:`<span class="zone" style="background:#9ca3af">χωρίς ζώνη</span>`;
+
+/* =================== ΑΠΟΘΗΚΕΥΣΗ =================== */
+const KEY="psyktikos.v1";
+let DB={customers:[],jobs:[],meta:{lastBackup:null,maxPerDay:5,nextNo:1}};
+function load(){
+  try{const raw=localStorage.getItem(KEY); if(raw){const d=JSON.parse(raw); DB=Object.assign(DB,d); DB.meta=Object.assign({lastBackup:null,maxPerDay:5,nextNo:1},d.meta||{});}}
+  catch(e){toast("Δεν μπορώ να διαβάσω την αποθήκευση του browser");}
+}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(DB));return true;}
+  catch(e){toast("ΠΡΟΣΟΧΗ: η αποθήκευση απέτυχε. Βγάλε αντίγραφο τώρα.");return false;}
+}
+function newCustId(){
+  let n=DB.meta.nextNo||1; const ids=new Set(DB.customers.map(c=>c.id));
+  while(ids.has("Π"+String(n).padStart(4,"0")))n++;
+  DB.meta.nextNo=n+1; return "Π"+String(n).padStart(4,"0");
+}
+const cust=id=>DB.customers.find(c=>c.id===id);
+const jobsOf=id=>DB.jobs.filter(j=>j.customerId===id).sort((a,b)=>(b.date+b.time).localeCompare(a.date+a.time));
+function custZone(c){return c?zoneOf(c.area,c.tk):"";}
+
+/* Εύρεση πιθανού ίδιου πελάτη: τηλέφωνο (οποιοδήποτε) ή όνομα+διεύθυνση */
+function findDuplicate(f,exceptId){
+  const ph=[nphone(f.phone1),nphone(f.phone2)].filter(p=>p.length>=8);
+  const nk=norm(f.name), ak=norm(f.address);
+  for(const c of DB.customers){
+    if(c.id===exceptId)continue;
+    const cp=[nphone(c.phone1),nphone(c.phone2)];
+    if(ph.some(p=>cp.includes(p)))return {c,why:"ίδιο τηλέφωνο"};
+  }
+  if(nk&&ak){for(const c of DB.customers){if(c.id!==exceptId&&norm(c.name)===nk&&norm(c.address)===ak)return {c,why:"ίδιο όνομα και διεύθυνση"};}}
+  return null;
+}
+function searchCustomers(q){
+  const d=nphone(q), n=norm(q);
+  if(!n)return[];
+  return DB.customers.filter(c=>{
+    if(d.length>=3&&(nphone(c.phone1).includes(d)||nphone(c.phone2).includes(d)))return true;
+    if(n.length>=2&&!/^\d+$/.test(n)&&(norm(c.name).includes(n)||norm(c.address).includes(n)))return true;
+    return false;
+  }).slice(0,8);
+}
+
+/* =================== ΠΡΟΤΑΣΗ ΗΜΕΡΑΣ =================== */
+function dayInfo(dateS,zone){
+  const js=DB.jobs.filter(j=>j.date===dateS&&j.status!=="Ακυρώθηκε");
+  const zs=js.map(j=>custZone(cust(j.customerId)));
+  const total=js.length, same=zone?zs.filter(z=>z===zone).length:0;
+  const neigh=zone?zs.filter(z=>ZONES[zone].n.includes(z)).length:0;
+  const sun=parseISO(dateS).getDay()===0;
+  let cls,txt;
+  if(sun){cls="sun";txt="Κυρ."}
+  else if(total>=(DB.meta.maxPerDay||5)){cls="full";txt="γεμάτη"}
+  else if(same>0){cls="best";txt="★ ίδια"}
+  else if(neigh>0){cls="good";txt="✓ κοντά"}
+  else if(total===0){cls="free";txt="ελεύθερη"}
+  else {cls="other";txt="✗ μακριά"}
+  return {total,cls,txt};
+}
+
+/* =================== ROUTER =================== */
+let VIEW="agenda", STATE={};
+function go(v,st){VIEW=v;STATE=st||{};render();window.scrollTo(0,0);}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
+function setNav(v){document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.v===v));}
+function render(){
+  const m=$("#main"); $("#hdrx").innerHTML="";
+  const map={agenda:vAgenda,new:vForm,customers:vCustomers,customer:vCustomer,more:vMore};
+  setNav(VIEW==="customer"?"customers":VIEW);
+  (map[VIEW]||vAgenda)(m);
+}
+
+/* =================== ΠΡΟΓΡΑΜΜΑ =================== */
+function backupBanner(){
+  if(!DB.jobs.length)return"";
+  const lb=DB.meta.lastBackup; const days=lb?Math.floor((Date.now()-lb)/864e5):999;
+  if(days<7)return"";
+  return `<div class="warnbox">💾 ${lb?`Τελευταίο αντίγραφο πριν από ${days} μέρες.`:"Δεν έχεις βγάλει ακόμα αντίγραφο ασφαλείας."} Τα δεδομένα υπάρχουν μόνο σε αυτή τη συσκευή. <a href="#" id="goBk">Βγάλε αντίγραφο</a></div>`;
+}
+function vAgenda(m){
+  $("#title").textContent="Πρόγραμμα";
+  const mode=STATE.mode||"next";
+  const t=todayISO();
+  let jobs=DB.jobs.slice();
+  if(mode==="next")jobs=jobs.filter(j=>j.date>=t);
+  else jobs=jobs.filter(j=>j.date<t);
+  jobs.sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time));
+  if(mode==="past")jobs.reverse();
+  const byDay={}; jobs.forEach(j=>(byDay[j.date]=byDay[j.date]||[]).push(j));
+  if(mode==="past")Object.values(byDay).forEach(a=>a.sort((x,y)=>x.time.localeCompare(y.time)));
+  let h=backupBanner()+`<div class="seg"><button data-m="next" class="${mode==="next"?"on":""}">Από σήμερα</button><button data-m="past" class="${mode==="past"?"on":""}">Προηγούμενα</button></div>`;
+  const days=Object.keys(byDay);
+  if(!days.length)h+=`<div class="empty">${mode==="next"?"Δεν υπάρχουν επόμενα ραντεβού.<br><br><button class='btn pri' id='goNew'>＋ Νέο ραντεβού</button>":"Δεν υπάρχουν παλαιότερα ραντεβού."}</div>`;
+  for(const d of days){
+    const list=byDay[d];
+    const active=list.filter(j=>j.status!=="Ακυρώθηκε");
+    const zs=[...new Set(active.map(j=>custZone(cust(j.customerId))).filter(Boolean))];
+    const sum=active.reduce((s,j)=>s+(+j.amount||0),0);
+    h+=`<div class="dayhead ${d===t?"today":""}"><h2>${d===t?"Σήμερα · ":""}${fmtDay(d)}</h2>${zs.map(zoneBadge).join(" ")}
+      <span class="small muted">${active.length} ραντ.${sum?" · "+eur(sum):""}</span>
+      ${active.length>1?`<a class="btn small" target="_blank" rel="noopener" href="${routeUrl(active)}">🗺 Διαδρομή</a>`:""}</div>`;
+    for(const j of list)h+=jobCard(j);
+  }
+  m.innerHTML=h;
+  m.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>go("agenda",{mode:b.dataset.m}));
+  const gn=$("#goNew"); if(gn)gn.onclick=()=>go("new");
+  const gb=$("#goBk"); if(gb)gb.onclick=e=>{e.preventDefault();go("more");};
+  bindJobCards(m);
+}
+function addrQ(c){return [c.address,c.area||c.tk,"Αττική"].filter(Boolean).join(", ");}
+function mapUrl(c){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(addrQ(c));}
+function routeUrl(list){
+  const pts=list.map(j=>cust(j.customerId)).filter(c=>c&&(c.address||c.area)).map(addrQ);
+  if(!pts.length)return"#";
+  const dest=pts[pts.length-1], wp=pts.slice(0,-1).slice(0,9);
+  return "https://www.google.com/maps/dir/?api=1&travelmode=driving&destination="+encodeURIComponent(dest)+(wp.length?"&waypoints="+encodeURIComponent(wp.join("|")):"");
+}
+function jobCard(j){
+  const c=cust(j.customerId)||{}; const z=custZone(c);
+  const cls=j.status==="Ολοκληρώθηκε"?"done":j.status==="Ακυρώθηκε"?"cancel":"";
+  const ph=c.phone1||c.phone2;
+  return `<div class="card job ${cls}" style="border-left-color:${z?ZONES[z].c:"#bbb"}">
+    <div class="row"><span class="t">${esc(j.time||"--:--")}</span><span class="nm">${esc(c.name||"(χωρίς όνομα)")}</span>
+    <span style="flex:1"></span>${j.amount!==""&&j.amount!=null?`<b>${eur(j.amount)}</b>`:""}</div>
+    <div class="small muted">${esc([c.address,c.floor].filter(Boolean).join(", "))}${c.area?" · "+esc(c.area):""} ${zoneBadge(z)}</div>
+    <div style="margin-top:4px;white-space:pre-line">${esc(j.desc)}</div>
+    ${j.notes?`<div class="small" style="color:var(--warn);margin-top:3px">⚠ ${esc(j.notes)}</div>`:""}
+    ${j.status&&j.status!=="Προγραμματισμένο"?`<div class="small muted">${esc(j.status)}</div>`:""}
+    <div class="btns">
+      ${ph?`<a class="btn" href="tel:${esc(nphone(ph))}">📞 ${esc(ph)}</a>`:""}
+      ${(c.address||c.area)?`<a class="btn" target="_blank" rel="noopener" href="${mapUrl(c)}">🗺 Χάρτης</a>`:""}
+      ${j.status!=="Ολοκληρώθηκε"&&j.status!=="Ακυρώθηκε"?`<button class="btn ok" data-done="${j.id}">✓ Έγινε</button>`:""}
+      <button class="btn" data-edit="${j.id}">✎</button>
+      <button class="btn" data-cust="${esc(j.customerId)}">👤</button>
+    </div></div>`;
+}
+function bindJobCards(m){
+  m.querySelectorAll("[data-done]").forEach(b=>b.onclick=()=>{const j=DB.jobs.find(x=>x.id===b.dataset.done);j.status="Ολοκληρώθηκε";save();toast("Σημειώθηκε ως ολοκληρωμένο");render();});
+  m.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>go("new",{jobId:b.dataset.edit}));
+  m.querySelectorAll("[data-cust]").forEach(b=>b.onclick=()=>go("customer",{id:b.dataset.cust}));
+}
+
+/* =================== ΦΟΡΜΑ ΡΑΝΤΕΒΟΥ =================== */
+function vForm(m){
+  const editing=STATE.jobId?DB.jobs.find(j=>j.id===STATE.jobId):null;
+  $("#title").textContent=editing?"Επεξεργασία ραντεβού":"Νέο ραντεβού";
+  let linked=editing?editing.customerId:(STATE.customerId||null);
+  const c0=linked?cust(linked):null;
+  const f={name:c0?.name||"",phone1:c0?.phone1||"",phone2:c0?.phone2||"",address:c0?.address||"",floor:c0?.floor||"",area:c0?.area||"",tk:c0?.tk||"",
+    date:editing?.date||STATE.date||"",time:editing?.time||"",desc:editing?.desc||"",category:editing?.category||"",amount:editing?.amount??"",
+    source:editing?.source??"Δικό μας",status:editing?.status||"Προγραμματισμένο",notes:editing?.notes||""};
+  m.innerHTML=`
+  <div class="card">
+    <div class="sec">Πελάτης</div>
+    <label>Τηλέφωνο ή όνομα (ψάχνει στους υπάρχοντες)</label>
+    <input id="q" inputmode="search" autocomplete="off" placeholder="π.χ. 6936… ή Γεροστάθου" ${linked?'style="display:none"':""}>
+    <div id="sugg"></div>
+    <div id="linkedBox"></div>
+    <div class="g2">
+      <div><label>Κινητό</label><input id="phone1" inputmode="tel" value="${esc(f.phone1)}"></div>
+      <div><label>Τηλέφωνο 2</label><input id="phone2" inputmode="tel" value="${esc(f.phone2)}"></div>
+    </div>
+    <label>Ονοματεπώνυμο</label><input id="name" autocapitalize="characters" value="${esc(f.name)}">
+    <div class="g3">
+      <div><label>Διεύθυνση</label><input id="address" autocapitalize="characters" value="${esc(f.address)}"></div>
+      <div><label>Όροφος</label><input id="floor" value="${esc(f.floor)}" placeholder="π.χ. 3ος"></div>
+    </div>
+    <div class="g3">
+      <div><label>Περιοχή</label><input id="area" list="areasList" autocomplete="off" value="${esc(f.area)}"></div>
+      <div><label>ΤΚ</label><input id="tk" inputmode="numeric" maxlength="6" value="${esc(f.tk)}"></div>
+    </div>
+    <div id="zoneOut" class="small" style="margin-top:6px"></div>
+    <datalist id="areasList">${Object.keys(AREAS).map(a=>`<option value="${esc(a)}">`).join("")}</datalist>
+  </div>
+  <div class="card">
+    <div class="sec">Πότε</div>
+    <div class="small muted" id="daysHint">Προτάσεις για τις επόμενες 3 εβδομάδες με βάση τη ζώνη:</div>
+    <div class="days" id="days"></div>
+    <div class="g2">
+      <div><label>Ημερομηνία</label><input id="date" type="date" value="${esc(f.date)}"></div>
+      <div><label>Ώρα</label><input id="time" type="time" value="${esc(f.time)}"></div>
+    </div>
+    <div id="dayList" class="small muted" style="margin-top:6px"></div>
+  </div>
+  <div class="card">
+    <div class="sec">Εργασία</div>
+    <div class="chips" id="catChips">${CATS.map(c=>`<span class="chip ${f.category===c?"on":""}" data-c="${esc(c)}">${esc(c)}</span>`).join("")}</div>
+    <div class="chips" id="btuChips">${BTU.map(b=>`<span class="chip" data-b="${b}">${b} BTU</span>`).join("")}</div>
+    <label>Περιγραφή (π.χ. 1 εγκατάσταση A/C 9.000 BTU + 1 απεγκατάσταση)</label>
+    <textarea id="desc">${esc(f.desc)}</textarea>
+    <div class="g2">
+      <div><label>Ποσό (€)</label><input id="amount" inputmode="decimal" value="${esc(f.amount)}"></div>
+      <div><label>Πηγή</label><input id="source" value="${esc(f.source)}" list="srcList"></div>
+    </div>
+    <datalist id="srcList">${[...new Set(["Δικό μας",...DB.jobs.map(j=>j.source).filter(Boolean)])].map(s=>`<option value="${esc(s)}">`).join("")}</datalist>
+    <label>Κατάσταση</label>
+    <select id="status">${["Προγραμματισμένο","Ολοκληρώθηκε","Ακυρώθηκε"].map(s=>`<option ${f.status===s?"selected":""}>${s}</option>`).join("")}</select>
+    <label>Σημειώσεις</label><input id="notes" value="${esc(f.notes)}">
+  </div>
+  <button class="btn pri big" id="saveBtn">💾 Αποθήκευση</button>
+  ${editing?`<div style="height:10px"></div><button class="btn bad big" id="delBtn">Διαγραφή ραντεβού</button>`:""}`;
+
+  let category=f.category;
+  const val=id=>$("#"+id).value.trim();
+  function showLinked(){
+    const box=$("#linkedBox");
+    if(!linked){box.innerHTML="";$("#q").style.display="";return;}
+    const c=cust(linked), js=jobsOf(linked).filter(j=>!editing||j.id!==editing.id), last=js[0];
+    box.innerHTML=`<div class="linked">✅ <b>Υπάρχων πελάτης ${esc(c.id)}</b> · ${js.length} προηγ. επισκέψεις${last?`<br><span class="small">Τελευταία: ${fmtD(last.date)}: ${esc(last.desc)}</span>`:""}
+      <div class="btns"><button class="btn" id="unlink">Δεν είναι αυτός</button></div></div>`;
+    $("#q").style.display="none"; $("#sugg").innerHTML="";
+    $("#unlink").onclick=()=>{linked=null;showLinked();};
+  }
+  function fillFrom(c){["name","phone1","phone2","address","floor","area","tk"].forEach(k=>$("#"+k).value=c[k]||"");linked=c.id;showLinked();updZone();}
+  $("#q").oninput=()=>{
+    const r=searchCustomers($("#q").value);
+    const qd=nphone($("#q").value);
+    $("#sugg").innerHTML=r.length?`<div class="sugg">${r.map(c=>`<div data-id="${esc(c.id)}"><b>${esc(c.name||"(χωρίς όνομα)")}</b> · ${esc(c.phone1||c.phone2||"")}<br><span class="small muted">${esc([c.address,c.area].filter(Boolean).join(", "))}</span></div>`).join("")}</div>`
+      :($("#q").value.trim().length>=3?`<div class="small muted" style="margin-top:4px">Δεν βρέθηκε: νέος πελάτης.</div>`:"");
+    $("#sugg").querySelectorAll("[data-id]").forEach(d=>d.onclick=()=>fillFrom(cust(d.dataset.id)));
+    if(!r.length&&qd.length>=10&&!val("phone1"))$("#phone1").value=$("#q").value.trim();
+  };
+  function curZone(){return zoneOf(val("area"),val("tk"));}
+  function updZone(){
+    const z=curZone();
+    $("#zoneOut").innerHTML=z?`Ζώνη: ${zoneBadge(z)} <span class="muted">γειτονικές: ${ZONES[z].n.join(", ")}</span>`
+      :(val("area")||val("tk")?`<span style="color:var(--bad)">Δεν αναγνωρίστηκε η περιοχή. Διάλεξε από τη λίστα ή γράψε ΤΚ.</span>`:"");
+    renderDays();
+  }
+  function renderDays(){
+    const z=curZone(), t=todayISO(), sel=$("#date").value;
+    let h=""; for(let i=0;i<21;i++){const d=addDays(t,i),inf=dayInfo(d,z),dd=parseISO(d);
+      h+=`<div class="dchip ${inf.cls} ${d===sel?"sel":""}" data-d="${d}">${DAYN[dd.getDay()].slice(0,3)}<b>${dd.getDate()}/${dd.getMonth()+1}</b>${inf.txt}<br><span class="muted">${inf.total} ραντ.</span></div>`;}
+    $("#days").innerHTML=h;
+    $("#daysHint").textContent=z?`Προτάσεις για ζώνη «${z}» (★ ίδια ζώνη, ✓ γειτονική, ✗ μακριά):`:"Γράψε περιοχή ή ΤΚ για να δεις ποιες μέρες ταιριάζουν.";
+    $("#days").querySelectorAll(".dchip").forEach(x=>x.onclick=()=>{$("#date").value=x.dataset.d;renderDays();renderDayList();});
+    renderDayList();
+  }
+  function renderDayList(){
+    const d=$("#date").value; if(!d){$("#dayList").innerHTML="";return;}
+    const js=DB.jobs.filter(j=>j.date===d&&j.status!=="Ακυρώθηκε"&&(!editing||j.id!==editing.id)).sort((a,b)=>a.time.localeCompare(b.time));
+    $("#dayList").innerHTML=js.length?"Ήδη εκείνη τη μέρα: "+js.map(j=>{const c=cust(j.customerId)||{};return `<b>${esc(j.time)}</b> ${esc(c.area||"?")}`}).join(" · "):"Καμία άλλη δουλειά εκείνη τη μέρα.";
+  }
+  ["area","tk"].forEach(id=>$("#"+id).oninput=updZone);
+  $("#area").onchange=()=>{const k=areaKey(val("area"));if(k)$("#area").value=k;updZone();};
+  $("#date").onchange=()=>{renderDays();};
+  $("#catChips").querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{
+    const was=ch.classList.contains("on");
+    $("#catChips").querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));
+    if(!was){ch.classList.add("on");category=ch.dataset.c;
+      const ta=$("#desc"); if(ch.dataset.c!=="Άλλο"){const line="1 "+ch.dataset.c.replace("Επισκευή/Βλάβη A/C","επισκευή/βλάβη A/C").replace(/^./,s=>s.toLowerCase());ta.value=(ta.value.trim()?ta.value.trim()+"\n":"")+line;}}
+    else category="";
+  });
+  $("#btuChips").querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{const ta=$("#desc");ta.value=(ta.value.trim()?ta.value.trim()+" ":"")+ch.dataset.b+" BTU";});
+  showLinked(); updZone();
+
+  $("#saveBtn").onclick=()=>{
+    const cf={name:val("name"),phone1:val("phone1"),phone2:val("phone2"),address:val("address"),floor:val("floor"),area:areaKey(val("area"))||val("area"),tk:val("tk")};
+    const jf={date:val("date"),time:val("time"),desc:val("desc"),category,amount:val("amount").replace(",","."),source:val("source"),status:$("#status").value,notes:val("notes")};
+    if(!cf.name&&!cf.phone1&&!cf.phone2){toast("Γράψε τουλάχιστον όνομα ή τηλέφωνο");return;}
+    if(!jf.date){toast("Διάλεξε ημερομηνία");return;}
+    if(jf.amount!==""&&isNaN(+jf.amount)){toast("Το ποσό πρέπει να είναι αριθμός");return;}
+    const finish=(custId)=>{
+      if(editing){Object.assign(editing,jf,{customerId:custId});}
+      else DB.jobs.push(Object.assign({id:uid(),customerId:custId,created:Date.now()},jf));
+      save(); toast(editing?"Το ραντεβού ενημερώθηκε":"Το ραντεβού αποθηκεύτηκε"); go("agenda");
+    };
+    if(linked){updateCustomer(cust(linked),cf);finish(linked);return;}
+    const dup=findDuplicate(cf);
+    if(dup){
+      modal(`<h3>Υπάρχει ήδη πελάτης</h3><p>Βρέθηκε <b>${esc(dup.c.name||"(χωρίς όνομα)")}</b> (${esc(dup.c.id)}) με <b>${dup.why}</b>:<br>
+        <span class="small muted">${esc([dup.c.phone1,dup.c.address,dup.c.area].filter(Boolean).join(" · "))}</span></p>
+        <button class="btn pri big" id="mY">Ναι, είναι ο ίδιος: ενημέρωσέ τον</button><div style="height:8px"></div>
+        <button class="btn big" id="mN">Όχι, είναι άλλος: νέος πελάτης</button><div style="height:8px"></div>
+        <button class="btn big" id="mC">Άκυρο</button>`,box=>{
+          box.querySelector("#mY").onclick=()=>{closeModal();updateCustomer(dup.c,cf);finish(dup.c.id);};
+          box.querySelector("#mN").onclick=()=>{closeModal();finish(createCustomer(cf));};
+          box.querySelector("#mC").onclick=closeModal;});
+      return;
+    }
+    finish(createCustomer(cf));
+  };
+  if(editing)$("#delBtn").onclick=()=>confirmBox("Διαγραφή αυτού του ραντεβού;",()=>{DB.jobs=DB.jobs.filter(j=>j.id!==editing.id);save();toast("Διαγράφηκε");go("agenda");});
+}
+function createCustomer(cf){const c=Object.assign({id:newCustId(),created:Date.now()},cf);DB.customers.push(c);return c.id;}
+/* Ενημέρωση: τα νέα μη κενά στοιχεία υπερισχύουν. Αν άλλαξε το κινητό, το παλιό κρατιέται ως Τηλ.2 */
+function updateCustomer(c,cf){
+  // Τηλέφωνα: κανένα δεν χάνεται. Κινητά (69…) πρώτα, μετά τα υπόλοιπα· ό,τι περισσεύει πάει στα «παλιά τηλέφωνα».
+  const all=[]; const seen=new Set();
+  for(const p of [cf.phone1,cf.phone2,c.phone1,c.phone2,...(c.oldPhones||[])]){const n=nphone(p);if(n&&!seen.has(n)){seen.add(n);all.push(p);}}
+  all.sort((a,b)=>(nphone(b).startsWith("69")?1:0)-(nphone(a).startsWith("69")?1:0));
+  for(const k of Object.keys(cf)){if(k!=="phone1"&&k!=="phone2"&&cf[k])c[k]=cf[k];}
+  c.phone1=all[0]||""; c.phone2=all[1]||""; c.oldPhones=all.slice(2);
+  c.updated=Date.now();
+}
+
+/* =================== ΠΕΛΑΤΕΣ =================== */
+function vCustomers(m){
+  $("#title").textContent="Πελάτες ("+DB.customers.length+")";
+  const q=STATE.q||"";
+  m.innerHTML=`<div class="search"><input id="cq" inputmode="search" placeholder="Αναζήτηση: όνομα, τηλέφωνο, οδός, περιοχή" value="${esc(q)}"></div><div id="clist"></div>`;
+  const draw=()=>{
+    const s=$("#cq").value; STATE.q=s; const n=norm(s), d=nphone(s);
+    let list=DB.customers.filter(c=>!n||norm([c.name,c.address,c.area,c.id].join(" ")).includes(n)||(d.length>=3&&(nphone(c.phone1)+" "+nphone(c.phone2)).includes(d)));
+    list.sort((a,b)=>norm(a.name).localeCompare(norm(b.name),"el"));
+    $("#clist").innerHTML=list.length?list.map(c=>{const js=jobsOf(c.id);const z=custZone(c);
+      return `<div class="card custrow" data-id="${esc(c.id)}"><div><b>${esc(c.name||"(χωρίς όνομα)")}</b><br><span class="small muted">${esc(c.phone1||c.phone2||"χωρίς τηλέφωνο")} · ${esc(c.area||"")}</span></div>
+      <div style="text-align:right">${zoneBadge(z)}<br><span class="small muted">${js.length} επισκ.${js[0]?" · "+fmtD(js[0].date):""}</span></div></div>`}).join("")
+      :`<div class="empty">${DB.customers.length?"Κανένα αποτέλεσμα.":"Δεν υπάρχουν ακόμα πελάτες.<br>Πρόσθεσε ένα ραντεβού ή κάνε επαναφορά από αντίγραφο (καρτέλα «Αρχείο»)."}</div>`;
+    $("#clist").querySelectorAll("[data-id]").forEach(x=>x.onclick=()=>go("customer",{id:x.dataset.id,back:s}));
+  };
+  $("#cq").oninput=draw; draw();
+}
+function vCustomer(m){
+  const c=cust(STATE.id); if(!c){go("customers");return;}
+  $("#title").textContent=c.name||c.id;
+  $("#hdrx").innerHTML=`<button id="bk">‹ Πίσω</button>`; $("#bk").onclick=()=>go("customers",{q:STATE.back||""});
+  const js=jobsOf(c.id), z=custZone(c);
+  const total=js.filter(j=>j.status!=="Ακυρώθηκε").reduce((s,j)=>s+(+j.amount||0),0);
+  m.innerHTML=`<div class="card"><div class="kv">
+    <div>Κωδικός</div><div>${esc(c.id)}</div>
+    <div>Όνομα</div><div><b>${esc(c.name||"-")}</b></div>
+    <div>Κινητό</div><div>${c.phone1?`<a class="tel" href="tel:${esc(nphone(c.phone1))}">${esc(c.phone1)}</a>`:"-"}</div>
+    <div>Τηλέφωνο 2</div><div>${c.phone2?`<a class="tel" href="tel:${esc(nphone(c.phone2))}">${esc(c.phone2)}</a>`:"-"}</div>
+    <div>Διεύθυνση</div><div>${esc([c.address,c.floor].filter(Boolean).join(", ")||"-")}</div>
+    <div>Περιοχή</div><div>${esc(c.area||"-")}${c.tk?" · ΤΚ "+esc(c.tk):""} ${zoneBadge(z)}</div>
+    <div>Επισκέψεις</div><div>${js.length}${total?" · σύνολο "+eur(total):""}</div></div>
+    <div class="btns">
+      <button class="btn pri" id="nj">＋ Νέο ραντεβού</button>
+      ${(c.address||c.area)?`<a class="btn" target="_blank" rel="noopener" href="${mapUrl(c)}">🗺 Χάρτης</a>`:""}
+      <button class="btn" id="ed">✎ Στοιχεία</button>
+      <button class="btn" id="mg">⇄ Ένωση</button>
+    </div></div>
+    <div class="dayhead"><h2>Ιστορικό</h2></div>
+    ${js.length?js.map(j=>`<div class="card"><div class="row"><b>${fmtD(j.date)}</b><span class="muted">${esc(j.time)}</span><span style="flex:1"></span><b>${eur(j.amount)}</b></div>
+      <div style="white-space:pre-line">${esc(j.desc)}</div><div class="small muted">${esc(j.status||"")}${j.notes?" · ⚠ "+esc(j.notes):""}</div>
+      <div class="btns"><button class="btn" data-edit="${j.id}">✎ Επεξεργασία</button></div></div>`).join(""):`<div class="empty">Χωρίς επισκέψεις.</div>`}
+    <button class="btn bad big" id="dl">Διαγραφή πελάτη</button>`;
+  $("#nj").onclick=()=>go("new",{customerId:c.id});
+  m.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>go("new",{jobId:b.dataset.edit}));
+  $("#ed").onclick=()=>editCustomer(c);
+  $("#mg").onclick=()=>mergeCustomer(c);
+  $("#dl").onclick=()=>confirmBox(`Διαγραφή του πελάτη ${c.name||c.id} και των ${js.length} επισκέψεών του;`,()=>{
+    DB.jobs=DB.jobs.filter(j=>j.customerId!==c.id);DB.customers=DB.customers.filter(x=>x.id!==c.id);save();toast("Διαγράφηκε");go("customers");});
+}
+function editCustomer(c){
+  const F=[["name","Ονοματεπώνυμο"],["phone1","Κινητό"],["phone2","Τηλέφωνο 2"],["address","Διεύθυνση"],["floor","Όροφος"],["area","Περιοχή"],["tk","ΤΚ"]];
+  modal(`<h3>Στοιχεία πελάτη</h3>${F.map(([k,l])=>`<label>${l}</label><input id="e_${k}" value="${esc(c[k]||"")}" ${k==="area"?'list="areasList2"':""}>`).join("")}
+    <datalist id="areasList2">${Object.keys(AREAS).map(a=>`<option value="${esc(a)}">`).join("")}</datalist>
+    <div style="height:12px"></div><button class="btn pri big" id="es">Αποθήκευση</button><div style="height:8px"></div><button class="btn big" id="ec">Άκυρο</button>`,box=>{
+    box.querySelector("#ec").onclick=closeModal;
+    box.querySelector("#es").onclick=()=>{
+      const nf={}; F.forEach(([k])=>nf[k]=box.querySelector("#e_"+k).value.trim()); nf.area=areaKey(nf.area)||nf.area;
+      const dup=findDuplicate(nf,c.id);
+      Object.assign(c,nf,{updated:Date.now()}); save(); closeModal(); render();
+      if(dup)toast(`Προσοχή: μοιάζει με τον ${dup.c.id} (${dup.why}). Δες «Ένωση».`);
+    };});
+}
+function mergeCustomer(c){
+  modal(`<h3>Ένωση διπλού πελάτη</h3><p class="small">Βρες τον <b>άλλο</b> πελάτη. Όλες οι επισκέψεις του θα περάσουν στον ${esc(c.id)} (${esc(c.name)}) και ο άλλος θα διαγραφεί.</p>
+    <input id="mq" placeholder="Όνομα ή τηλέφωνο"><div id="ms"></div><div style="height:10px"></div><button class="btn big" id="mc">Άκυρο</button>`,box=>{
+    box.querySelector("#mc").onclick=closeModal;
+    box.querySelector("#mq").oninput=()=>{
+      const r=searchCustomers(box.querySelector("#mq").value).filter(x=>x.id!==c.id);
+      box.querySelector("#ms").innerHTML=r.length?`<div class="sugg">${r.map(x=>`<div data-id="${esc(x.id)}"><b>${esc(x.name||"(χωρίς όνομα)")}</b> · ${esc(x.phone1||"")} · ${esc(x.id)}</div>`).join("")}</div>`:"";
+      box.querySelectorAll("[data-id]").forEach(d=>d.onclick=()=>{
+        const o=cust(d.dataset.id);
+        DB.jobs.forEach(j=>{if(j.customerId===o.id)j.customerId=c.id;});
+        ["phone1","phone2","address","floor","area","tk","name"].forEach(k=>{if(!c[k]&&o[k])c[k]=o[k];});
+        if(o.phone1&&nphone(o.phone1)!==nphone(c.phone1)&&!c.phone2)c.phone2=o.phone1;
+        DB.customers=DB.customers.filter(x=>x.id!==o.id); save(); closeModal(); toast(`Ενώθηκε ο ${o.id} με τον ${c.id}`); render();
+      });
+    };});
+}
+
+/* =================== ΑΡΧΕΙΟ: ΑΝΤΙΓΡΑΦΑ / EXCEL =================== */
+function vMore(m){
+  $("#title").textContent="Αρχείο & αντίγραφα";
+  const lb=DB.meta.lastBackup;
+  m.innerHTML=`
+  <div class="card"><div class="sec">Αντίγραφο ασφαλείας</div>
+    <p class="small">Τα δεδομένα βρίσκονται <b>μόνο σε αυτή τη συσκευή</b>. Βγάζε αντίγραφο κάθε εβδομάδα και στείλε το στον εαυτό σου (email/Viber).<br>
+    Τελευταίο αντίγραφο: <b>${lb?new Date(lb).toLocaleString("el-GR"):"ποτέ"}</b></p>
+    <button class="btn pri big" id="bkShare">📤 Αποστολή αντιγράφου (Excel + backup)</button><div style="height:8px"></div>
+    <div class="g2"><button class="btn" id="bkXlsx">⬇ Excel (.xlsx)</button><button class="btn" id="bkJson">⬇ Backup (.json)</button></div>
+  </div>
+  <div class="card"><div class="sec">Επαναφορά</div>
+    <p class="small">Από αρχείο backup (.json) που έβγαλε αυτή η εφαρμογή. Πελάτες και ραντεβού που υπάρχουν ήδη δεν διπλασιάζονται.</p>
+    <input type="file" id="imp" accept=".json,application/json">
+  </div>
+  <div class="card"><div class="sec">Ρυθμίσεις</div>
+    <label>Μέγιστα ραντεβού ανά ημέρα</label><input id="maxd" type="number" min="1" max="15" value="${DB.meta.maxPerDay||5}">
+  </div>
+  <div class="card small muted">Σύνολο: ${DB.customers.length} πελάτες · ${DB.jobs.length} ραντεβού<br>
+    Περιοχές/ΤΚ: κατά προσέγγιση πίνακας για την Αττική (${Object.keys(AREAS).length} περιοχές). Για περιοχή που δεν υπάρχει στη λίστα, γράψε ΤΚ: η ζώνη βγαίνει από τα 3 πρώτα ψηφία.<br><br>
+    <button class="btn bad" id="wipe">Διαγραφή όλων των δεδομένων</button></div>`;
+  $("#maxd").onchange=()=>{DB.meta.maxPerDay=Math.max(1,+$("#maxd").value||5);save();toast("Αποθηκεύτηκε");};
+  const stamp=()=>{const d=new Date();return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());};
+  const mark=()=>{DB.meta.lastBackup=Date.now();save();};
+  $("#bkXlsx").onclick=()=>{download(buildXlsx(),"Πελατολόγιο_"+stamp()+".xlsx","application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");mark();};
+  $("#bkJson").onclick=()=>{download(new Blob([JSON.stringify(exportObj(),null,1)],{type:"application/json"}),"backup_psyktikos_"+stamp()+".json");mark();vMore(m);};
+  $("#bkShare").onclick=async()=>{
+    const files=[new File([buildXlsx()],"Πελατολόγιο_"+stamp()+".xlsx",{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),
+                 new File([JSON.stringify(exportObj())],"backup_psyktikos_"+stamp()+".json",{type:"application/json"})];
+    try{
+      if(navigator.canShare&&navigator.canShare({files})){await navigator.share({files,title:"Αντίγραφο πελατολογίου"});mark();vMore(m);return;}
+    }catch(e){if(e&&e.name==="AbortError")return;}
+    toast("Η αποστολή δεν υποστηρίζεται εδώ: κατεβάζω τα αρχεία");
+    download(files[0],files[0].name);download(files[1],files[1].name);mark();vMore(m);
+  };
+  $("#imp").onchange=async e=>{
+    const file=e.target.files[0]; if(!file)return;
+    try{const d=JSON.parse(await file.text()); const r=importObj(d); save(); toast(`Επαναφορά: +${r.c} πελάτες, +${r.j} ραντεβού`); go("agenda");}
+    catch(err){toast("Το αρχείο δεν είναι έγκυρο backup");}
+  };
+  $("#wipe").onclick=()=>confirmBox("Θα διαγραφούν ΟΛΟΙ οι πελάτες και τα ραντεβού από αυτή τη συσκευή. Έχεις αντίγραφο;",()=>{
+    DB={customers:[],jobs:[],meta:{lastBackup:null,maxPerDay:5,nextNo:1}};save();toast("Διαγράφηκαν");go("agenda");});
+}
+function exportObj(){return {app:"psyktikos",version:1,exported:new Date().toISOString(),customers:DB.customers,jobs:DB.jobs,meta:DB.meta};}
+function importObj(d){
+  if(!d||d.app!=="psyktikos"||!Array.isArray(d.customers)||!Array.isArray(d.jobs))throw new Error("bad");
+  let nc=0,nj=0; const idmap={};
+  for(const c of d.customers){
+    const same=cust(c.id);
+    if(same&&(norm(same.name)===norm(c.name)||nphone(same.phone1)===nphone(c.phone1))){idmap[c.id]=same.id;continue;}
+    const dup=findDuplicate(c); if(dup){idmap[c.id]=dup.c.id;continue;}
+    const nc2=Object.assign({},c); if(same)nc2.id=newCustId(); DB.customers.push(nc2); idmap[c.id]=nc2.id; nc++;
+  }
+  const have=new Set(DB.jobs.map(j=>j.id));
+  for(const j of d.jobs){if(have.has(j.id))continue; DB.jobs.push(Object.assign({},j,{customerId:idmap[j.customerId]||j.customerId})); nj++;}
+  const mx=Math.max(0,...DB.customers.map(c=>+String(c.id).replace(/\D/g,"")||0)); DB.meta.nextNo=Math.max(DB.meta.nextNo||1,mx+1);
+  return {c:nc,j:nj};
+}
+function download(blob,name,type){
+  try{const b=blob instanceof Blob?blob:new Blob([blob],{type});const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},4000);}catch(e){toast("Η λήψη απέτυχε");}
+}
+
+/* ---- Δημιουργία .xlsx χωρίς βιβλιοθήκες (zip χωρίς συμπίεση) ---- */
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0;}return t;})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return (c^0xFFFFFFFF)>>>0;}
+function zip(files){
+  const enc=new TextEncoder(),parts=[],cd=[];let off=0;
+  for(const [name,str] of files){
+    const nb=enc.encode(name),db=enc.encode(str),crc=crc32(db);
+    const lh=new DataView(new ArrayBuffer(30));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);
+    lh.setUint32(14,crc,true);lh.setUint32(18,db.length,true);lh.setUint32(22,db.length,true);lh.setUint16(26,nb.length,true);
+    parts.push(new Uint8Array(lh.buffer),nb,db);
+    const ch=new DataView(new ArrayBuffer(46));
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);
+    ch.setUint32(16,crc,true);ch.setUint32(20,db.length,true);ch.setUint32(24,db.length,true);ch.setUint16(28,nb.length,true);ch.setUint32(42,off,true);
+    cd.push(new Uint8Array(ch.buffer),nb); off+=30+nb.length+db.length;
+  }
+  const cdSize=cd.reduce((s,a)=>s+a.length,0);
+  const e=new DataView(new ArrayBuffer(22));
+  e.setUint32(0,0x06054b50,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cdSize,true);e.setUint32(16,off,true);
+  return new Blob([...parts,...cd,new Uint8Array(e.buffer)],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+}
+const xesc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"");
+function colL(i){let s="";i++;while(i>0){const m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26);}return s;}
+function sheetXml(rows,widths){
+  // κελί: {v, t:'s'|'n'|'d'} · style 1=επικεφαλίδα, 2=ημερομηνία, 3=ευρώ
+  let x=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>`;
+  widths.forEach((w,i)=>x+=`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`);
+  x+=`</cols><sheetData>`;
+  rows.forEach((r,ri)=>{x+=`<row r="${ri+1}">`;r.forEach((c,ci)=>{
+    const ref=colL(ci)+(ri+1);
+    if(c==null||c.v===""||c.v==null)return;
+    if(c.t==="n"||c.t==="d"||c.t==="e"){x+=`<c r="${ref}" s="${c.t==="d"?2:c.t==="e"?3:0}"><v>${c.v}</v></c>`;}
+    else x+=`<c r="${ref}" t="inlineStr"${ri===0?' s="1"':""}><is><t xml:space="preserve">${xesc(c.v)}</t></is></c>`;
+  });x+=`</row>`;});
+  x+=`</sheetData><autoFilter ref="A1:${colL(rows[0].length-1)}${rows.length}"/></worksheet>`;
+  return x;
+}
+const serial=s=>{const[a,b,c]=s.split("-").map(Number);return (Date.UTC(a,b-1,c)-Date.UTC(1899,11,30))/864e5;};
+function buildXlsx(){
+  const S=v=>({v:v??"",t:"s"}), Nn=v=>(v===""||v==null||isNaN(+v))?{v:""}:{v:+v,t:"e"}, Dd=v=>v?{v:serial(v),t:"d"}:{v:""};
+  const ch=["Κωδ.","Ονοματεπώνυμο","Κινητό","Τηλέφωνο 2","Διεύθυνση","Όροφος","Περιοχή","ΤΚ","Ζώνη","Επισκέψεις","Τελευταία επίσκεψη","Σύνολο (€)"];
+  const cr=[ch.map(S)];
+  DB.customers.slice().sort((a,b)=>a.id.localeCompare(b.id)).forEach(c=>{const js=jobsOf(c.id);const act=js.filter(j=>j.status!=="Ακυρώθηκε");
+    cr.push([S(c.id),S(c.name),S(c.phone1),S(c.phone2),S(c.address),S(c.floor),S(c.area),S(c.tk),S(custZone(c)),{v:js.length,t:"n"},Dd(js[0]?.date),Nn(act.reduce((s,j)=>s+(+j.amount||0),0))]);});
+  const jh=["Ημερομηνία","Ώρα","Κωδ. πελάτη","Ονοματεπώνυμο","Κινητό","Διεύθυνση","Περιοχή","Ζώνη","Εργασία","Κατηγορία","Ποσό (€)","Πηγή","Κατάσταση","Σημειώσεις"];
+  const jr=[jh.map(S)];
+  DB.jobs.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).forEach(j=>{const c=cust(j.customerId)||{};
+    jr.push([Dd(j.date),S(j.time),S(j.customerId),S(c.name),S(c.phone1||c.phone2),S([c.address,c.floor].filter(Boolean).join(", ")),S(c.area),S(custZone(c)),S(j.desc),S(j.category),Nn(j.amount),S(j.source),S(j.status),S(j.notes)]);});
+  const files=[
+   ["[Content_Types].xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`],
+   ["_rels/.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+   ["xl/workbook.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Εργασίες" sheetId="1" r:id="rId1"/><sheet name="Πελάτες" sheetId="2" r:id="rId2"/></sheets><definedNames><definedName name="_xlnm._FilterDatabase" localSheetId="0" hidden="1">'Εργασίες'!$A$1:$N$${jr.length}</definedName><definedName name="_xlnm._FilterDatabase" localSheetId="1" hidden="1">'Πελάτες'!$A$1:$L$${cr.length}</definedName></definedNames></workbook>`],
+   ["xl/_rels/workbook.xml.rels",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+   ["xl/styles.xml",`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><numFmts count="2"><numFmt numFmtId="164" formatCode="dd/mm/yyyy"/><numFmt numFmtId="165" formatCode="#,##0.00 &quot;€&quot;"/></numFmts><fonts count="2"><font><sz val="10"/><name val="Arial"/></font><font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF1F4E78"/><bgColor indexed="64"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="4"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/><xf numFmtId="164" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/><xf numFmtId="165" fontId="0" fillId="0" borderId="0" xfId="0" applyNumberFormat="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`],
+   ["xl/worksheets/sheet1.xml",sheetXml(jr,[11,7,9,24,13,30,16,15,44,17,10,11,15,36])],
+   ["xl/worksheets/sheet2.xml",sheetXml(cr,[8,24,13,13,30,7,16,8,15,10,12,11])]
+  ];
+  return zip(files);
+}
+
+/* =================== ΠΑΡΑΘΥΡΑ / ΜΗΝΥΜΑΤΑ =================== */
+function modal(html,bind){const r=$("#modalRoot");r.innerHTML=`<div class="modal"><div class="box">${html}</div></div>`;
+  const mo=r.querySelector(".modal");mo.onclick=e=>{if(e.target===mo)closeModal();};bind&&bind(r.querySelector(".box"));}
+function closeModal(){$("#modalRoot").innerHTML="";}
+function confirmBox(msg,yes){modal(`<h3>Επιβεβαίωση</h3><p>${esc(msg)}</p><button class="btn bad big" id="cy">Ναι</button><div style="height:8px"></div><button class="btn big" id="cn">Όχι</button>`,
+  b=>{b.querySelector("#cy").onclick=()=>{closeModal();yes();};b.querySelector("#cn").onclick=closeModal;});}
+let toastT; function toast(t){let el=document.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";document.body.appendChild(el);}
+  el.textContent=t;clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),3200);}
+
+/* =================== ΕΚΚΙΝΗΣΗ =================== */
+load(); render();
+try{ if(navigator.storage&&navigator.storage.persist)navigator.storage.persist(); }catch(e){}
+try{ if("serviceWorker" in navigator&&location.protocol==="https:")navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
+</script>
+</body>
+</html>
