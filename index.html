@@ -583,7 +583,7 @@ function vMore(m){
   };
   $("#imp").onchange=async e=>{
     const file=e.target.files[0]; if(!file)return;
-    try{const d=JSON.parse(await file.text()); const r=importObj(d); save(); toast(`Επαναφορά: +${r.c} πελάτες, +${r.j} ραντεβού`); go("agenda");}
+    try{const d=JSON.parse(await file.text()); const r=importObj(d); save(); if(!d.customers.length&&!d.jobs.length)toast(`Το αρχείο «${file.name}» είναι άδειο (0 πελάτες). Διάλεξε άλλο αρχείο.`); else if(!r.c&&!r.j)toast(`Όλα τα στοιχεία του «${file.name}» υπήρχαν ήδη (${d.customers.length} πελάτες, ${d.jobs.length} ραντεβού). Δεν προστέθηκε τίποτα διπλό.`); else toast(`Επαναφορά από «${file.name}»: +${r.c} πελάτες, +${r.j} ραντεβού`); e.target.value=""; go("agenda");}
     catch(err){toast("Το αρχείο δεν είναι έγκυρο backup");}
   };
   $("#wipe").onclick=()=>confirmBox("Θα διαγραφούν ΟΛΟΙ οι πελάτες και τα ραντεβού από αυτή τη συσκευή. Έχεις αντίγραφο;",()=>{
@@ -676,7 +676,7 @@ function closeModal(){$("#modalRoot").innerHTML="";}
 function confirmBox(msg,yes){modal(`<h3>Επιβεβαίωση</h3><p>${esc(msg)}</p><button class="btn bad big" id="cy">Ναι</button><div style="height:8px"></div><button class="btn big" id="cn">Όχι</button>`,
   b=>{b.querySelector("#cy").onclick=()=>{closeModal();yes();};b.querySelector("#cn").onclick=closeModal;});}
 let toastT; function toast(t){let el=document.querySelector(".toast");if(!el){el=document.createElement("div");el.className="toast";document.body.appendChild(el);}
-  el.textContent=t;clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),3200);}
+  el.textContent=t;clearTimeout(toastT);toastT=setTimeout(()=>el.remove(),Math.max(3200,t.length*70));}
 
 /* =================== ΕΚΚΙΝΗΣΗ =================== */
 load(); render();
